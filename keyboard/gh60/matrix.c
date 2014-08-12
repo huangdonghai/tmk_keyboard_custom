@@ -34,11 +34,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef DEBOUNCE
 #   define DEBOUNCE	5
 #endif
-static uint8_t debouncing = DEBOUNCE;
+
+#define HDH_DEBOUNCE
 
 /* matrix state(1:on, 0:off) */
 static matrix_row_t matrix[MATRIX_ROWS];
+
+#ifndef HDH_DEBOUNCE
 static matrix_row_t matrix_debouncing[MATRIX_ROWS];
+static uint8_t debouncing = DEBOUNCE;
+#else
+static int8_t matrix_debouncing[MATRIX_ROWS][MATRIX_COLS];
+static uint8_t debouncing_step = 50 / DEBOUNCE;
+#endif
 
 static matrix_row_t read_cols(void);
 static void init_cols(void);
@@ -89,10 +97,22 @@ void matrix_init(void)
     unselect_rows();
     init_cols();
 
+#ifdef HDH_DEBOUNCE
+    debouncing_step = 100 / DEBOUNCE;
+    if (debouncing_step > 20)
+        debouncing_step = 20;
+#endif // HDH_DEBOUNCE
+
     // initialize matrix state: all keys off
     for (uint8_t i=0; i < MATRIX_ROWS; i++) {
         matrix[i] = 0;
+#ifndef HDH_DEBOUNCE
         matrix_debouncing[i] = 0;
+#else
+        for (uint8_t j=0; j < MATRIX_COLS; j++) {
+            matrix_debouncing[i][j] = 0;
+        }
+#endif
     }
 }
 
@@ -105,6 +125,7 @@ uint8_t matrix_scan(void)
 #endif
         _delay_us(30);  // without this wait read unstable value.
         matrix_row_t cols = read_cols();
+#ifndef HDH_DEBOUNCE
         if (matrix_debouncing[i] != cols) {
             matrix_debouncing[i] = cols;
             if (debouncing) {
@@ -112,9 +133,24 @@ uint8_t matrix_scan(void)
             }
             debouncing = DEBOUNCE;
         }
+#else
+        for (uint8_t j = 0; j < MATRIX_COLS; j++) {
+            if (cols & ((matrix_row_t)1<<j)) {
+                matrix_debouncing[i][j] += debouncing_step;
+            } else {
+                matrix_debouncing[i][j] -= debouncing_step;
+            }
+
+            if (matrix_debouncing[i][j] > 100)
+                matrix_debouncing[i][j] = 100;
+            if (matrix_debouncing[i][j] < -100)
+                matrix_debouncing[i][j] = -100;
+        }
+#endif
         unselect_rows();
     }
 
+#ifndef HDH_DEBOUNCE
     if (debouncing) {
         if (--debouncing) {
             _delay_ms(1);
@@ -124,13 +160,29 @@ uint8_t matrix_scan(void)
             }
         }
     }
-
+#else
+    for (uint8_t i = 0; i < MATRIX_ROWS; i++) {
+        for (uint8_t j = 0; j < MATRIX_COLS; j++) {
+            int8_t value = matrix_debouncing[i][j];
+            if (value > 50) {
+                matrix[i] |= ((matrix_row_t)1<<j);
+            } else if (value < -50) {
+                matrix[i] &= ~((matrix_row_t)1<<j);
+            } else {
+                // do nothing
+            }
+        }
+    }
+    _delay_ms(1);
+#endif
     return 1;
 }
 
 bool matrix_is_modified(void)
 {
+#ifndef HDH_DEBOUNCE
     if (debouncing) return false;
+#endif // HDH_DEBOUNCE
     return true;
 }
 
