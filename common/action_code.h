@@ -231,7 +231,7 @@ enum usage_pages {
 
 
 
-/* 
+/*
  * Layer Actions
  */
 enum layer_param_on {
@@ -250,9 +250,12 @@ enum layer_pram_tap_op {
     OP_ON_OFF,
     OP_OFF_ON,
     OP_SET_CLEAR,
+    OP_ON_OFF_SHIFT,
 };
 #define ACTION_LAYER_BITOP(op, part, bits, on)      (ACT_LAYER<<12 | (op)<<10 | (on)<<8 | (part)<<5 | ((bits)&0x1f))
 #define ACTION_LAYER_TAP(layer, key)                (ACT_LAYER_TAP<<12 | (layer)<<8 | (key))
+#define ACTION_LAYER_TAP_SHIFT(layer)          ACTION_LAYER_TAP((layer), OP_ON_OFF_SHIFT)
+
 /* Default Layer */
 #define ACTION_DEFAULT_LAYER_SET(layer)             ACTION_DEFAULT_LAYER_BIT_SET((layer)/4, 1<<((layer)%4))
 /* Layer Operation */

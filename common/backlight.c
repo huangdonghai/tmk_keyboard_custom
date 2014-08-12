@@ -28,7 +28,7 @@ void backlight_init(void)
         eeconfig_init();
     }
     backlight_config.raw = eeconfig_read_backlight();
-    backlight_set(backlight_config.enable ? backlight_config.level : 0);
+    backlight_set(/*backlight_config.enable ? backlight_config.level : */0);
 }
 
 void backlight_increase(void)

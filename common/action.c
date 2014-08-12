@@ -253,6 +253,15 @@ void process_action(keyrecord_t *record)
                     event.pressed ? layer_on(action.layer_tap.val) :
                                     layer_off(action.layer_tap.val);
                     break;
+                case OP_ON_OFF_SHIFT:
+                    if (event.pressed) {
+                        register_mods(MOD_LSFT);
+                        layer_on(action.layer_tap.val);
+                    } else  {
+                        unregister_mods(MOD_LSFT);
+                        layer_off(action.layer_tap.val);
+                    }
+                    break;
                 case OP_OFF_ON:
                     event.pressed ? layer_off(action.layer_tap.val) :
                                     layer_on(action.layer_tap.val);
@@ -283,6 +292,17 @@ void process_action(keyrecord_t *record)
                     break;
             }
             break;
+            #if 0
+        case ACT_LAYER_TAP_MOD: /* HACK by hdh*/
+            if (event.pressed) {
+                register_mods(action.layer_tap.code);
+                layer_on(action.layer_tap.val);
+            } else {
+                unregister_mods(action.layer_tap.code);
+                layer_off(action.layer_tap.val);
+            }
+            break;
+            #endif
     #endif
 #endif
         /* Extentions */
@@ -387,7 +407,7 @@ void register_code(uint8_t code)
             set_mods(tmp_mods);
             send_keyboard_report();
             oneshot_cancel();
-        } else 
+        } else
 */
 #endif
         {

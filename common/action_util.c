@@ -30,6 +30,10 @@ static inline void del_key_bit(uint8_t code);
 static uint8_t real_mods = 0;
 static uint8_t weak_mods = 0;
 
+#ifdef HDH_HACK
+static uint8_t treating_esc_as_grv = 0;
+#endif // HDH_HACK
+
 #ifdef USB_6KRO_ENABLE
 #define RO_ADD(a, b) ((a + b) % REPORT_KEYS)
 #define RO_SUB(a, b) ((a - b + REPORT_KEYS) % REPORT_KEYS)
@@ -75,6 +79,14 @@ void send_keyboard_report(void) {
 /* key */
 void add_key(uint8_t key)
 {
+#ifdef HDH_HACK
+    uint8_t mods = real_mods | weak_mods;
+    if (((mods & MOD_BIT(KC_LSFT)) || (mods & MOD_BIT(KC_RSFT))) && key == KC_ESC) {
+        treating_esc_as_grv = 1;
+        key = KC_GRAVE;
+    }
+#endif // HDH_HACK
+
 #ifdef NKRO_ENABLE
     if (keyboard_nkro) {
         add_key_bit(key);
@@ -86,6 +98,13 @@ void add_key(uint8_t key)
 
 void del_key(uint8_t key)
 {
+#ifdef HDH_HACK
+    if (treating_esc_as_grv) {
+        treating_esc_as_grv = 0;
+        key = KC_GRAVE;
+    }
+#endif // HDH_HACK
+
 #ifdef NKRO_ENABLE
     if (keyboard_nkro) {
         del_key_bit(key);

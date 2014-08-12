@@ -3,6 +3,7 @@
 #include "action.h"
 #include "util.h"
 #include "action_layer.h"
+#include "backlight.h" // HACK by hdh
 
 #ifdef DEBUG_ACTION
 #include "debug.h"
@@ -11,7 +12,7 @@
 #endif
 
 
-/* 
+/*
  * Default Layer State
  */
 uint32_t default_layer_state = 0;
@@ -23,6 +24,8 @@ static void default_layer_state_set(uint32_t state)
     default_layer_state = state;
     default_layer_debug(); debug("\n");
     clear_keyboard_but_mods(); // To avoid stuck keys
+
+    backlight_set(0);
 }
 
 void default_layer_debug(void)
@@ -52,7 +55,7 @@ void default_layer_xor(uint32_t state)
 
 
 #ifndef NO_ACTION_LAYER
-/* 
+/*
  * Keymap Layer State
  */
 uint32_t layer_state = 0;
@@ -64,6 +67,9 @@ static void layer_state_set(uint32_t state)
     layer_state = state;
     layer_debug(); dprintln();
     clear_keyboard_but_mods(); // To avoid stuck keys
+#ifdef HDH_HACK
+    backlight_set((state & 1<<3) != 0);
+#endif
 }
 
 void layer_clear(void)
