@@ -68,7 +68,7 @@ static void layer_state_set(uint32_t state)
     layer_debug(); dprintln();
     clear_keyboard_but_mods(); // To avoid stuck keys
 #ifdef HDH_HACK
-    backlight_set((state & 1<<3) != 0);
+    backlight_set(((state & 1<<3) != 0) ? 3 : 0);
 #endif
 }
 

@@ -83,6 +83,10 @@ ifdef LED_MATRIX_ENABLE
     OPT_DEFS += -DLED_MATRIX_ENABLE
 endif
 
+ifdef HDH_HACK
+    OPT_DEFS += -DHDH_HACK
+endif
+
 # Version string
 OPT_DEFS += -DVERSION=$(shell (git describe --always --dirty || echo 'unknown') 2> /dev/null)
 
